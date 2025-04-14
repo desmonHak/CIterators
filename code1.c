@@ -52,7 +52,7 @@ int main() {
 
     // 3. Zip Iterator (Multiple Arrays)
     int arr1[] = {1, 2, 3};
-    int arr2[] = {4, 5, 6};
+    int arr2[] = {4, 5, 6, 7};
     int arr3[] = {7, 8, 9};
     size_t arr_size1 = sizeof(arr1) / sizeof(arr1[0]);
     size_t arr_size2 = sizeof(arr2) / sizeof(arr2[0]);
@@ -127,10 +127,10 @@ int main() {
     Iterator string_iter = create_string_array_iterator(strings, string_count);
 
     printf("String Array Iterator: ");
-    do {
+    while (string_iter.next(&string_iter)) {
         const char** val = (const char**)string_iter.deref(&string_iter);
         printf("%s ", *val);
-    } while (string_iter.next(&string_iter));
+    }
     printf("\n");
     string_iter.destroy(&string_iter);
    
