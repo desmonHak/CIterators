@@ -434,23 +434,32 @@ void iterator_reset(Iterator *it) {
 **/
 void **iterator_to_array(Iterator it, size_t *count) {
     size_t n = 0;
-    Iterator temp = it;
-    while (temp.next(&temp)) {
-        n++;
-    }
-
-    void **array = malloc(n * sizeof(void *));
-    if (!array)
-        return NULL;
-
+    void **array = NULL;
+    void **temp_array = NULL;
     size_t i = 0;
-    iterator_reset(&it);
-    while (it.next(&it) && i < n) {
-        array[i++] = it.deref(&it);
+
+    // Iterar y copiar los elementos
+    while (it.next(&it)) {
+        void *element = it.deref(&it);
+
+        // Asignar o Reasignar memoria
+        temp_array = realloc(array, (n + 1) * sizeof(void *));
+        if (!temp_array) {
+            // En caso de fallo, liberar la memoria previamente asignada
+            free(array);
+            return NULL;
+        }
+
+        array = temp_array; // Actualizar el puntero al nuevo bloque de memoria
+
+        // Copiar el elemento
+        array[n++] = element;
     }
 
-    if (count)
+    // Asignar el tamaño al puntero de conteo (si no es NULL)
+    if (count != NULL) {
         *count = n;
+    }
     return array;
 }
 
