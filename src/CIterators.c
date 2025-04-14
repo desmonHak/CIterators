@@ -21,7 +21,12 @@ static void* generic_array_deref(const Iterator* it) {
 static void *filter_deref(const Iterator *it);
 
 
-/* Implementación básica de iterador para arrays genéricos */
+/**
+ * @brief Avanza al siguiente elemento en un GenericArrayIterator.
+ *
+ * @param it Puntero al iterador genérico.
+ * @return Puntero al iterador actualizado si hay más elementos, NULL si se alcanza el final.
+ */
 void *generic_array_next(Iterator *it) {
     GenericArrayIterator *iter = (GenericArrayIterator *)it->impl;
     if(iter->index == -1){
@@ -38,7 +43,13 @@ void *generic_array_next(Iterator *it) {
     return NULL;
 }
 
-
+/**
+ * @brief Compara dos GenericArrayIterator.
+ *
+ * @param a Iterador A.
+ * @param b Iterador B.
+ * @return true si ambos iteradores apuntan al mismo índice y al mismo array, false en caso contrario.
+ */
 bool generic_array_equal(const Iterator *a, const Iterator *b)
 {
     const GenericArrayIterator *ia = (GenericArrayIterator *)a->impl;
@@ -46,7 +57,11 @@ bool generic_array_equal(const Iterator *a, const Iterator *b)
     return ia->index == ib->index && ia->elements == ib->elements;
 }
 
-
+/**
+ * @brief Libera los recursos utilizados por un GenericArrayIterator.
+ *
+ * @param it Puntero al iterador que se va a destruir.
+ */
 void generic_array_destroy(Iterator *it)
 {
     GenericArrayIterator *iter = (GenericArrayIterator *)it->impl;
@@ -55,6 +70,14 @@ void generic_array_destroy(Iterator *it)
     it->impl = NULL;
 }
 
+/**
+ * @brief Crea un iterador para un array genérico.
+ *
+ * @param array Puntero al array original.
+ * @param size Número de elementos en el array.
+ * @param element_size Tamaño en bytes de cada elemento.
+ * @return Un iterador configurado para recorrer el array.
+ */
 Iterator create_generic_array_iterator(void *array, size_t size, size_t element_size) {
     void **elements = malloc(size * sizeof(void *));
     if (!elements)
@@ -87,7 +110,12 @@ Iterator create_generic_array_iterator(void *array, size_t size, size_t element_
     return iter;
 }
 
-/* Implementación de iterador de rango */
+/**
+ * @brief Avanza al siguiente número en un RangeIterator.
+ *
+ * @param it Iterador de rango.
+ * @return Puntero al iterador si hay más valores en el rango, NULL si se ha completado.
+ */
 static void *range_next(Iterator *it) {
     RangeIterator *iter = (RangeIterator *)it->impl;
     int next_val = iter->current + iter->step;
@@ -100,6 +128,13 @@ static void *range_next(Iterator *it) {
     return it;
 }
 
+/**
+ * @brief Compara dos iteradores de rango.
+ *
+ * @param a Iterador A.
+ * @param b Iterador B.
+ * @return true si ambos iteradores están en la misma posición y comparten límites y paso, false en caso contrario.
+ */
 static bool range_equal(const Iterator *a, const Iterator *b)
 {
     const RangeIterator *ia = (RangeIterator *)a->impl;
@@ -107,17 +142,37 @@ static bool range_equal(const Iterator *a, const Iterator *b)
     return ia->current == ib->current && ia->end == ib->end && ia->step == ib->step;
 }
 
+/**
+ * @brief Obtiene el valor actual del RangeIterator sin avanzar.
+ *
+ * @param it Iterador de rango.
+ * @return Puntero al valor actual del iterador.
+ */
 static void *range_deref(const Iterator *it)
 {
     return it->current;
 }
 
+
+/**
+ * @brief Libera los recursos de un RangeIterator.
+ *
+ * @param it Iterador a destruir.
+ */
 static void range_destroy(Iterator *it)
 {
     free(it->impl);
     it->impl = NULL;
 }
 
+/**
+ * @brief Crea un iterador de rango (tipo range de Python).
+ *
+ * @param start Valor inicial.
+ * @param end Valor final (no inclusivo).
+ * @param step Paso de incremento/decremento.
+ * @return Un iterador configurado para generar la secuencia, o un iterador nulo si el paso es 0 o hay error.
+ */
 Iterator create_range_iterator(int start, int end, int step)
 {
     if (step == 0)
@@ -221,7 +276,13 @@ static void multi_zip_destroy(Iterator *it) {
     it->impl = NULL;
 }
 
-
+/**
+ * @brief Crea un iterador de filtrado que solo incluye los elementos que cumplen una condición.
+ * 
+ * @param it Iterador fuente cuyos elementos se van a filtrar.
+ * @param filter_fn Función que retorna true si el elemento debe incluirse.
+ * @return Nuevo iterador que filtra los elementos según el criterio dado.
+ */
 Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *)) {
     FilterIterator *impl = malloc(sizeof(FilterIterator));
     if (!impl)
@@ -267,8 +328,15 @@ static void *filter_next(Iterator *it)
  * @param iteradores Array de iteradores a combinar.
  * @param count Número de iteradores en el array.
  * @return Un nuevo iterador MultiZip.
- */
-Iterator multi_zip_iterators(Iterator* iterators, size_t count) {
+ * @example
+ * Iterator iters[2];
+ * int arr1[] = {1, 2, 3};
+ * int arr2[] = {4, 5, 6};
+ * iters[0] = create_generic_array_iterator(arr1, 3, sizeof(int));
+ * iters[1] = create_generic_array_iterator(arr2, 3, sizeof(int));
+ * Iterator zip_it = multi_zip_iterators(iters, 2);
+ * // Ahora zip_it itera sobre pares de elementos de arr1 y arr2
+ */Iterator multi_zip_iterators(Iterator* iterators, size_t count) {
     MultiZipIterator *impl = malloc(sizeof(MultiZipIterator));
     if (!impl)
         return (Iterator){0};
@@ -368,6 +436,13 @@ static void map_destroy(Iterator *it)
     it->impl = NULL;
 }
 
+/**
+ * @brief Crea un iterador de mapeo que transforma los elementos del iterador fuente.
+ * 
+ * @param it Iterador fuente cuyos elementos se van a transformar.
+ * @param map_fn Función que transforma cada elemento del iterador fuente.
+ * @return Nuevo iterador con la transformación aplicada a cada elemento.
+ */
 Iterator map_iterator(Iterator it, void *(*map_fn)(void *)) {
     MapIterator *impl = malloc(sizeof(MapIterator));
     if (!impl)
@@ -389,7 +464,13 @@ Iterator map_iterator(Iterator it, void *(*map_fn)(void *)) {
     return iter;
 }
 
-/* Implementación de avance rápido */
+/**
+ * @brief Avanza el iterador un número determinado de posiciones.
+ * 
+ * @param it Puntero al iterador a avanzar.
+ * @param n Número de pasos a avanzar.
+ * @return true si se pudo avanzar n pasos, false si el iterador se agotó antes.
+ */
 bool iterator_advance(Iterator *it, size_t n)
 {
     if (!it || !it->impl)
@@ -522,11 +603,12 @@ void iterator_foreach(Iterator it, void(func)(void *)) {
 }
 
 /**
-    @brief Busca un elemento en el iterador
-    @param it Iterador donde buscar
-    @param value Valor a buscar
-    @param cmp Función de comparación
-    @return Puntero al elemento encontrado o NULL si no se encuentra
+    @brief Busca un elemento en el iterador que coincida con un valor dado.
+    
+    @param it Iterador donde buscar.
+    @param value Valor a buscar.
+    @param cmp Función de comparación que retorna 0 si los elementos son iguales.
+    @return Puntero al elemento encontrado o NULL si no se encuentra.
     @example
     int arr[] = {1, 2, 3};
     Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));

@@ -11,59 +11,98 @@
 #include <assert.h>
 #include <stdbool.h>
 
+/**
+ * @enum IteratorCategory
+ * @brief Categorías de iteradores compatibles.
+ *
+ * Define los diferentes tipos de iteradores que pueden implementarse.
+ */
 typedef enum {
-    INPUT_ITERATOR,
-    FORWARD_ITERATOR,
-    BIDIRECTIONAL_ITERATOR,
-    RANDOM_ACCESS_ITERATOR,
-    ZIP_ITERATOR,          
-    FILTER_ITERATOR,       
-    MAP_ITERATOR           
+    INPUT_ITERATOR,         /**< Iterador de entrada, solo permite una pasada hacia adelante. */
+    FORWARD_ITERATOR,       /**< Iterador de avance, permite múltiples pasadas hacia adelante. */
+    BIDIRECTIONAL_ITERATOR, /**< Iterador bidireccional, permite avanzar y retroceder. */
+    RANDOM_ACCESS_ITERATOR, /**< Iterador de acceso aleatorio, permite saltos arbitrarios. */
+    ZIP_ITERATOR,           /**< Iterador que agrupa elementos de varios iteradores. */
+    FILTER_ITERATOR,        /**< Iterador que filtra elementos según una condición. */
+    MAP_ITERATOR            /**< Iterador que transforma elementos mediante una función. */
 } IteratorCategory;
 
+/**
+ * @struct Iterator
+ * @brief Interfaz genérica para iteradores.
+ *
+ * Define las funciones básicas que debe tener cualquier iterador.
+ */
 typedef struct Iterator {
-    void* (*next)(struct Iterator*);
-    bool  (*equal)(const struct Iterator*, const struct Iterator*);
-    void* (*deref)(const struct Iterator*);
-    void  (*destroy)(struct Iterator*);
-    IteratorCategory category;
-    void* impl;
-    void* current;
+    void* (*next)(struct Iterator*);                                /**< Avanza al siguiente elemento y lo devuelve. */
+    bool  (*equal)(const struct Iterator*, const struct Iterator*); /**< Compara dos iteradores. */
+    void* (*deref)(const struct Iterator*);                         /**< Devuelve el elemento actual sin avanzar. */
+    void  (*destroy)(struct Iterator*);                             /**< Libera recursos del iterador. */
+    IteratorCategory category;                                      /**< Categoría del iterador. */
+    void* impl;                                                     /**< Implementación interna del iterador (puntero a struct concreta). */
+    void* current;                                                  /**< Elemento actual del iterador. */
 } Iterator;
 
-typedef struct {
-    void** elements;  // Array de punteros void*
-    size_t index;
-    size_t size;
-    size_t element_size;
+/**
+ * @struct GenericArrayIterator
+ * @brief Iterador para recorrer arrays genéricos de punteros.
+ *
+ * Permite recorrer un array de punteros void* con soporte para tamaños y posición actual.
+ */
+typedef struct GenericArrayIterator {
+    void** elements;      /**< Array de punteros a elementos. */
+    size_t index;         /**< Índice actual del iterador. */
+    size_t size;          /**< Número total de elementos en el array. */
+    size_t element_size;  /**< Tamaño en bytes de cada elemento. */
 } GenericArrayIterator;
 
-typedef struct
-{
-    int start;    // Nuevo campo para almacenar inicio real
-    int current;
-    int end;
-    int step;
+/**
+ * @struct RangeIterator
+ * @brief Iterador para generar secuencias numéricas.
+ *
+ * Similar a la función `range` en Python. Útil para bucles simples sobre rangos de enteros.
+ */
+typedef struct RangeIterator {
+    int start;    /**< Valor inicial de la secuencia. */
+    int current;  /**< Valor actual del iterador. */
+    int end;      /**< Valor final (no inclusivo) de la secuencia. */
+    int step;     /**< Incremento entre valores sucesivos. */
 } RangeIterator;
 
-typedef struct {
-    Iterator* iterators; // Array de iteradores
-    size_t count;        // Número de iteradores
-    bool* valid;         // Array para verificar la validez de cada iterador
-    void** elements;     // Array para almacenar el elemento actual de cada iterador
-    bool first;          // Bandera para la primera iteración
+/**
+ * @struct MultiZipIterator
+ * @brief Iterador para combinar múltiples iteradores en paralelo.
+ *
+ * Itera sobre varios iteradores al mismo tiempo, devolviendo una tupla con sus elementos actuales.
+ */
+typedef struct MultiZipIterator {
+    Iterator* iterators; /**< Array de iteradores a combinar. */
+    size_t count;        /**< Número total de iteradores. */
+    bool* valid;         /**< Array que indica si cada iterador tiene un valor válido. */
+    void** elements;     /**< Array que guarda el valor actual de cada iterador. */
+    bool first;          /**< Bandera que indica si es la primera llamada a `next`. */
 } MultiZipIterator;
 
-typedef struct
-{
-    Iterator source;
-    bool (*filter_fn)(void *);
+/**
+ * @struct FilterIterator
+ * @brief Iterador que filtra elementos según una función de predicado.
+ *
+ * Permite omitir elementos que no cumplen con una condición especificada.
+ */
+typedef struct FilterIterator {
+    Iterator source;               /**< Iterador fuente del que se obtienen los elementos. */
+    bool (*filter_fn)(void *);     /**< Función que determina si un elemento debe incluirse. */
 } FilterIterator;
 
-typedef struct
-{
-    Iterator source;
-    void *(*map_fn)(void *);
+/**
+ * @struct MapIterator
+ * @brief Iterador que transforma elementos usando una función de mapeo.
+ *
+ * Aplica una función a cada elemento del iterador fuente y devuelve el resultado.
+ */
+typedef struct MapIterator {
+    Iterator source;              /**< Iterador fuente del que se obtienen los elementos. */
+    void *(*map_fn)(void *);      /**< Función que transforma un elemento. */
 } MapIterator;
 
 void* generic_array_next(Iterator* it);
@@ -91,18 +130,19 @@ Iterator create_range_iterator(int start, int end, int step);
 Iterator zip_iterators(Iterator it1, Iterator it2);
 
 /**
- * @brief Filtra elementos de un iterador usando función predicado
- * @param it Iterador fuente
- * @param filter_fn Función de filtrado (devuelve true para elementos a mantener)
- * @return Iterador filtrado
- */
-Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *));
+ * @brief Crea un iterador de filtrado que solo incluye los elementos que cumplen una condición.
+ * 
+ * @param it Iterador fuente cuyos elementos se van a filtrar.
+ * @param filter_fn Función que retorna true si el elemento debe incluirse.
+ * @return Nuevo iterador que filtra los elementos según el criterio dado.
+ */Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *));
 
 /**
- * @brief Transforma elementos de un iterador usando función de mapeo
- * @param it Iterador fuente
- * @param map_fn Función de transformación
- * @return Iterador transformado
+ * @brief Crea un iterador de mapeo que transforma los elementos del iterador fuente.
+ * 
+ * @param it Iterador fuente cuyos elementos se van a transformar.
+ * @param map_fn Función que transforma cada elemento del iterador fuente.
+ * @return Nuevo iterador con la transformación aplicada a cada elemento.
  */
 Iterator map_iterator(Iterator it, void *(*map_fn)(void *));
 

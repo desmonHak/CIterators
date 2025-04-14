@@ -39,7 +39,7 @@ cleanobj:
 	
 
 cleanall: cleanobj
-	$(RM) $(RMFLAGS) $(TARGET).a 
+	$(RM) $(RMFLAGS) $(TARGET).a *.s *.i 
 	
 
 .SILENT: clean cleanobj cleanall

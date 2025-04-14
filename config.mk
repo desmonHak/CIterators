@@ -9,7 +9,7 @@ PATH_EXAMPLES	  = examples
 PATH_DEBUG 		  = DebugLibC
 PATH_COLORS		  = $(PATH_DEBUG)/colors-C-C-plus-plus
 
-LINKER_FLAGS  	  =  -L. -lCIterators
+LINKER_FLAGS  	  =  -L. -lCIterators -lm
 
 INCLUDE_FLAGS = -I. -I$(PATH_INCLUDE)
 GLOBAL_CFLAGS = -std=c$(VESRION_C) $(INCLUDE_FLAGS) -masm=intel \
