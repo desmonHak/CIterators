@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <stdbool.h>
 
 typedef enum {
@@ -22,10 +23,9 @@ typedef enum {
 
 typedef struct Iterator {
     void* (*next)(struct Iterator*);
-    bool (*equal)(const struct Iterator*, const struct Iterator*);
+    bool  (*equal)(const struct Iterator*, const struct Iterator*);
     void* (*deref)(const struct Iterator*);
-    void (*destroy)(struct Iterator*);
-    bool (*is_valid)(const struct Iterator*); // Nueva función
+    void  (*destroy)(struct Iterator*);
     IteratorCategory category;
     void* impl;
     void* current;
@@ -69,16 +69,9 @@ typedef struct
 void* generic_array_next(Iterator* it);
 bool generic_array_equal(const Iterator* a, const Iterator* b);
 
-static inline void* generic_array_deref(const Iterator* it) {
-    return it->current;
-}
-
 void generic_array_destroy(Iterator* it);
 
 Iterator create_generic_array_iterator(void* array, size_t size, size_t element_size);
-static void *filter_next(Iterator *it);
-static void filter_destroy(Iterator *it);
-static void *filter_deref(const Iterator *it);
 
 /**
  * @brief Crea un iterador de rango numérico
@@ -127,8 +120,6 @@ bool iterator_advance(Iterator *it, size_t n);
  */
 void iterator_reset(Iterator *it);
 
-static bool filter_equal(const Iterator *a, const Iterator *b);
-
 
 /**
     @brief Crea un iterador para un array de strings (char*)
@@ -140,10 +131,10 @@ Iterator create_string_array_iterator(const char **array, size_t count);
    
 void iterator_foreach(Iterator it, void(func)(void *));
 
-bool generic_array_is_valid(const Iterator* it);
-bool range_is_valid(const Iterator* it);
-bool multi_zip_is_valid(const Iterator* it);
-bool filter_is_valid(const Iterator* it);
-bool map_is_valid(const Iterator* it);
+void **iterator_to_array(Iterator it, size_t *count);
+Iterator multi_zip_iterators(Iterator* iterators, size_t count);
+void* iterator_find(Iterator it, const void *value, int(cmp)(const void *, const void *));
+bool iterator_any(Iterator it, bool(pred)(void *));
+bool iterator_all(Iterator it, bool(pred)(void *));
 
 #endif // CITERATORS_H

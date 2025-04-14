@@ -1,2 +1,14 @@
-
 *.exe
+*.elf
+*.json
+*.i
+*.s
+*.o
+.vscode
+*.json
+*.out
+*grpof*
+gmon.*
+error_log.txt
+*.a
+*.gcda

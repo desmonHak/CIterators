@@ -11,8 +11,15 @@
 #define CITERATORS_C
 
 #include "CIterators.h"
-#include <stdlib.h>
-#include <assert.h>
+
+static bool filter_equal(const Iterator *a, const Iterator *b);
+static void *filter_next(Iterator *it);
+static void filter_destroy(Iterator *it);
+static void* generic_array_deref(const Iterator* it) {
+    return it->current;
+}
+static void *filter_deref(const Iterator *it);
+
 
 /* Implementación básica de iterador para arrays genéricos */
 void *generic_array_next(Iterator *it) {
@@ -131,7 +138,6 @@ Iterator create_range_iterator(int start, int end, int step)
         .equal = range_equal,
         .deref = range_deref,
         .destroy = range_destroy,
-        .is_valid = range_is_valid,
         .category = INPUT_ITERATOR,
         .impl = impl,
         .current = NULL};
@@ -211,7 +217,6 @@ Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *)) {
         .equal = filter_equal,
         .deref = filter_deref,
         .destroy = filter_destroy,
-        .is_valid = filter_is_valid,
         .category = FILTER_ITERATOR, // Corrección
         .impl = impl,
         .current = NULL};
@@ -276,7 +281,6 @@ Iterator multi_zip_iterators(Iterator* iterators, size_t count) {
         .equal = multi_zip_equal,
         .deref = multi_zip_deref,
         .destroy = multi_zip_destroy,
-        .is_valid = multi_zip_is_valid,
         .category = ZIP_ITERATOR,
         .impl = impl,
         .current = NULL   // Se inicializa en NULL, ya que se actualizará en next
@@ -354,7 +358,6 @@ Iterator map_iterator(Iterator it, void *(*map_fn)(void *)) {
         .equal = map_equal,
         .deref = map_deref,
         .destroy = map_destroy,
-        .is_valid = map_is_valid,
         .category = MAP_ITERATOR, // Corrección
         .impl = impl,
         .current = NULL};
@@ -541,41 +544,6 @@ Iterator create_string_array_iterator(const char **array, size_t count) {
 
     return create_generic_array_iterator((void *)array, count, sizeof(char *));
 }
-
-bool generic_array_is_valid(const Iterator* it) {
-    const GenericArrayIterator* iter = (const GenericArrayIterator*)it->impl;
-    return iter->index < iter->size;
-}
-
-bool range_is_valid(const Iterator* it) {
-    const RangeIterator* iter = (const RangeIterator*)it->impl;
-    if (iter->step > 0) {
-        return iter->current < iter->end;
-    } else {
-        return iter->current > iter->end;
-    }
-}
-
-
-bool multi_zip_is_valid(const Iterator* it) {
-    const MultiZipIterator* iter = (const MultiZipIterator*)it->impl;
-    for (size_t i = 0; i < iter->count; i++) {
-        if (!iter->valid[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-bool filter_is_valid(const Iterator* it) {
-    const FilterIterator* iter = (const FilterIterator*)it->impl;
-    return iter->source.is_valid ? iter->source.is_valid(&iter->source) : (iter->source.current != NULL);
-}
-
-bool map_is_valid(const Iterator* it) {
-    const MapIterator* iter = (const MapIterator*)it->impl;
-    return iter->source.is_valid ? iter->source.is_valid(&iter->source) : (iter->source.current != NULL);
-}
-
 
 
 

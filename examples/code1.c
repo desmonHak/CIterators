@@ -1,6 +1,6 @@
-#include "CSortting.c"
-// main.c
+#include "CSortting.h"
 #include "CIterators.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
