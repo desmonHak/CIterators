@@ -112,61 +112,16 @@ void generic_array_destroy(Iterator* it);
 
 Iterator create_generic_array_iterator(void* array, size_t size, size_t element_size);
 
-/**
- * @brief Crea un iterador de rango numérico
- * @param start Valor inicial del rango
- * @param end Valor final del rango (exclusivo)
- * @param step Paso de iteración
- * @return Iterador configurado
- */
 Iterator create_range_iterator(int start, int end, int step);
 
-/**
- * @brief Combina dos iteradores en pares (elemento1, elemento2)
- * @param it1 Primer iterador
- * @param it2 Segundo iterador
- * @return Iterador zip que produce pares de elementos
- */
-Iterator zip_iterators(Iterator it1, Iterator it2);
+Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *));
 
-/**
- * @brief Crea un iterador de filtrado que solo incluye los elementos que cumplen una condición.
- * 
- * @param it Iterador fuente cuyos elementos se van a filtrar.
- * @param filter_fn Función que retorna true si el elemento debe incluirse.
- * @return Nuevo iterador que filtra los elementos según el criterio dado.
- */Iterator filter_iterator(Iterator it, bool (*filter_fn)(void *));
-
-/**
- * @brief Crea un iterador de mapeo que transforma los elementos del iterador fuente.
- * 
- * @param it Iterador fuente cuyos elementos se van a transformar.
- * @param map_fn Función que transforma cada elemento del iterador fuente.
- * @return Nuevo iterador con la transformación aplicada a cada elemento.
- */
 Iterator map_iterator(Iterator it, void *(*map_fn)(void *));
 
-/**
- * @brief Avanza un iterador N posiciones
- * @param it Iterador a avanzar
- * @param n Número de posiciones a avanzar
- * @return true si el avance fue exitoso para todas las posiciones
- */
 bool iterator_advance(Iterator *it, size_t n);
 
-/**
- * @brief Reinicia un iterador a su posición inicial
- * @param it Iterador a reiniciar
- */
 void iterator_reset(Iterator *it);
 
-
-/**
-    @brief Crea un iterador para un array de strings (char*)
-    @param array Array de strings
-    @param count Número de elementos en el array
-    @return Iterador configurado para el array de strings
-    **/
 Iterator create_string_array_iterator(const char **array, size_t count);
    
 void iterator_foreach(Iterator it, void(func)(void *));

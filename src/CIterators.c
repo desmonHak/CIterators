@@ -328,15 +328,8 @@ static void *filter_next(Iterator *it)
  * @param iteradores Array de iteradores a combinar.
  * @param count Número de iteradores en el array.
  * @return Un nuevo iterador MultiZip.
- * @example
- * Iterator iters[2];
- * int arr1[] = {1, 2, 3};
- * int arr2[] = {4, 5, 6};
- * iters[0] = create_generic_array_iterator(arr1, 3, sizeof(int));
- * iters[1] = create_generic_array_iterator(arr2, 3, sizeof(int));
- * Iterator zip_it = multi_zip_iterators(iters, 2);
- * // Ahora zip_it itera sobre pares de elementos de arr1 y arr2
- */Iterator multi_zip_iterators(Iterator* iterators, size_t count) {
+ */
+Iterator multi_zip_iterators(Iterator* iterators, size_t count) {
     MultiZipIterator *impl = malloc(sizeof(MultiZipIterator));
     if (!impl)
         return (Iterator){0};
@@ -489,11 +482,6 @@ bool iterator_advance(Iterator *it, size_t n)
 /**
  * @brief Reinicia un iterador a su posición inicial
  * @param it Iterador a reiniciar
- * @example
- * int arr[] = {1, 2, 3};
- * Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
- * it.next(&it); // Avanza el iterador
- * iterator_reset(&it); // Reinicia el iterador al inicio
  */
 void iterator_reset(Iterator *it) {
     if (!it || !it->impl) return;
@@ -544,14 +532,8 @@ void iterator_reset(Iterator *it) {
     @param count Puntero para almacenar el número de elementos
     @return Array dinámico con los elementos del iterador
     El llamador es responsable de liberar la memoria del array devuelto.
-    @example
-    int arr[] = {1, 2, 3};
-    Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
-    size_t count;
-    int **array = (int **)iterator_to_array(it, &count);
-    // Usa el array
-    free(array);
-**/
+
+    */
 void **iterator_to_array(Iterator it, size_t *count) {
     size_t n = 0;
     void **array = NULL;
@@ -588,13 +570,6 @@ void **iterator_to_array(Iterator it, size_t *count) {
     @brief Aplica una función a cada elemento del iterador
     @param it Iterador a procesar
     @param func Función a aplicar a cada elemento
-    @example
-    void print_int(void *data) {
-        printf("%d ", *(int *)data);
-    }
-    int arr[] = {1, 2, 3};
-    Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
-    iterator_foreach(it, print_int); // Imprime "1 2 3 "
     */
 void iterator_foreach(Iterator it, void(func)(void *)) {
     while (it.next(&it)) {
@@ -609,14 +584,6 @@ void iterator_foreach(Iterator it, void(func)(void *)) {
     @param value Valor a buscar.
     @param cmp Función de comparación que retorna 0 si los elementos son iguales.
     @return Puntero al elemento encontrado o NULL si no se encuentra.
-    @example
-    int arr[] = {1, 2, 3};
-    Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
-    int target = 2;
-    int *found = iterator_find(it, &target, compare_ints);
-    if (found) {
-        printf("Encontrado: %d\n", *found); // Imprime "Encontrado: 2"
-    }
     */
 void* iterator_find(Iterator it, const void *value, int(cmp)(const void *, const void *))
 {
@@ -636,14 +603,6 @@ void* iterator_find(Iterator it, const void *value, int(cmp)(const void *, const
     @param it Iterador a verificar
     @param pred Función predicado
     @return true si algún elemento cumple la condición, false en caso contrario
-    @example
-    int arr[] = {1, 2, 3};
-    Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
-    bool is_even(void *data) {
-        return (*(int *)data % 2 == 0);
-    }
-    bool has_even = iterator_any(it, is_even);
-    printf("Tiene pares: %s\n", has_even ? "true" : "false"); // Imprime "Tiene pares: true"
 */
 bool iterator_any(Iterator it, bool(pred)(void *))
 {
@@ -662,14 +621,6 @@ bool iterator_any(Iterator it, bool(pred)(void *))
     @param it Iterador a verificar
     @param pred Función predicado
     @return true si todos los elementos cumplen la condición, false en caso contrario
-    @example
-    int arr[] = {2, 4, 6};
-    Iterator it = create_generic_array_iterator(arr, 3, sizeof(int));
-    bool is_even(void *data) {
-        return (*(int *)data % 2 == 0);
-    }
-    bool all_even = iterator_all(it, is_even);
-    printf("Todos son pares: %s\n", all_even ? "true" : "false"); // Imprime "Todos son pares: true"
 */
 bool iterator_all(Iterator it, bool(pred)(void *))
 {
@@ -688,11 +639,6 @@ bool iterator_all(Iterator it, bool(pred)(void *))
     @param array Array de strings
     @param count Número de elementos en el array
     @return Iterador configurado para el array de strings
-    @example
-    const char *strings[] = {"hola", "mundo"};
-    Iterator it = create_string_array_iterator(strings, 2);
-    const char **str = (const char **)it.deref(&it);
-    printf("%s\n", *str); // Imprime "hola"
     **/
 Iterator create_string_array_iterator(const char **array, size_t count) {
 
