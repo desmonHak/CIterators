@@ -538,7 +538,7 @@ void **iterator_to_array(Iterator it, size_t *count) {
     size_t n = 0;
     void **array = NULL;
     void **temp_array = NULL;
-    size_t i = 0;
+    //size_t i = 0;
 
     // Iterar y copiar los elementos
     while (it.next(&it)) {

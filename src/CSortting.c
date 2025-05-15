@@ -143,7 +143,7 @@ static size_t partition(Iterator *it, size_t low, size_t high, CompareFunc compa
 static void introsort_impl(Iterator *it, size_t begin, size_t end,
                            int depth_limit, CompareFunc compare)
 {
-    GenericArrayIterator *iter = (GenericArrayIterator *)it->impl;
+    //GenericArrayIterator *iter = (GenericArrayIterator *)it->impl;
     size_t size = end - begin + 1;
 
     // Usar insertion sort para arrays pequeños
