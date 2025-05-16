@@ -168,6 +168,38 @@ static void introsort_impl(Iterator *it, size_t begin, size_t end,
         introsort_impl(it, pivot + 1, end, depth_limit - 1, compare);
 }
 
+#include <stddef.h> // para size_t
+
+static inline int log2_int(size_t n) {
+    if (n == 0) return -1; // indefinido para log2(0)
+
+#if defined(__GNUC__) || defined(__clang__)
+#if SIZE_MAX == UINT64_MAX
+    return 63 - __builtin_clzll(n);
+#else
+    return 31 - __builtin_clz((unsigned int)n);
+#endif
+
+#elif defined(_MSC_VER)
+#include <intrin.h>
+    unsigned long index;
+#if defined(_M_X64) || defined(_M_ARM64)
+    _BitScanReverse64(&index, n);
+#else
+    _BitScanReverse(&index, (unsigned long)n);
+#endif
+    return (int)index;
+
+#else
+    // Fallback portable version
+    int res = 0;
+    while (n >>= 1) res++;
+    return res;
+#endif
+}
+
+
+
 /**
  * @brief Función pública de ordenación genérica
  * @param it Puntero al iterador a ordenar
@@ -187,7 +219,7 @@ void generic_sort(Iterator *it, CompareFunc compare)
         return;
 
     // Calcular la profundidad máxima como 2 * log2(n)
-    int depth_limit = 2 * log2(iter->size);
+    int depth_limit = 2 * log2_int(iter->size);
 
     introsort_impl(it, 0, iter->size - 1, depth_limit, compare);
 

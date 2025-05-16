@@ -29,7 +29,7 @@ static void *filter_deref(const Iterator *it);
  */
 void *generic_array_next(Iterator *it) {
     GenericArrayIterator *iter = (GenericArrayIterator *)it->impl;
-    if(iter->index == -1){
+    if(iter->index == (size_t)-1){
         iter->index = 0;
         it->current = iter->elements[iter->index];
         return it;
